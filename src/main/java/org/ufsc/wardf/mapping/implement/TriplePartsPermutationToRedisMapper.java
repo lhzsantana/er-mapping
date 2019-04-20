@@ -18,18 +18,22 @@ public class TriplePartsPermutationToRedisMapper extends AbstractMapper {
         RDFNode predicate = stmt.getPredicate();
         RDFNode object = stmt.getObject();
 
-        //spo
+        //sp_o
+        jedis.set(subject.toString()+predicate.toString(), object.toString());
 
-        //sop
+        //po_s
+        jedis.set(predicate.toString()+object.toString(), subject.toString());
 
-        //pso
+        //so_p
+        jedis.set(subject.toString()+object.toString(), predicate.toString());
 
-        //pos
+        //p_so
+        jedis.set(predicate.toString(), subject.toString()+object.toString());
 
-        //ops
+        //o_sp
+        jedis.set(object.toString(), subject.toString()+predicate.toString());
 
-        //osp
-
-
+        //s_po
+        jedis.set(subject.toString(), predicate.toString()+object.toString());
     }
 }

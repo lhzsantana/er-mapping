@@ -30,8 +30,8 @@ public class Main {
         // read the RDF/XML file
         model.read(in, "");
 
-        flatTripleToMongoDBMapper.mapAll(model);
-        triplePartsPermutationMapper.mapAll(model);
+        //flatTripleToMongoDBMapper.mapAll(model);
+        //triplePartsPermutationMapper.mapAll(model);
         graphToNeo4JMapper.mapAll(model);
 
     }

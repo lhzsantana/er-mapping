@@ -2,13 +2,13 @@ package org.ufsc.wardf.mapping.implement;
 
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Statement;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.driver.v1.*;
 import org.ufsc.wardf.mapping.AbstractMapper;
-import org.neo4j.graphdb.GraphDatabaseService;
 
 public class GraphToNeo4JMapper extends AbstractMapper {
-    GraphDatabaseService db = null;
+
+    Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "rdf"));
+
     @Override
     protected void store(Statement stmt) {
 
@@ -16,9 +16,13 @@ public class GraphToNeo4JMapper extends AbstractMapper {
         RDFNode predicate = stmt.getPredicate();
         RDFNode object = stmt.getObject();
 
-        try(Transaction tx=db.beginTx()){
-            Node nod=db.createNode();
-            nod.setProperty("name", "comp");
+        try (Session session = driver.session()) {
+
+            String statement = "CREATE (a:RDFNode { name: '"+subject.toString()+"' })" +
+                    "CREATE (b:RDFNode { name: '"+object.toString()+"' })" +
+                    "CREATE (a)-[r:RELTYPE { name: '"+predicate.toString()+"' }]->(b)";
+
+            StatementResult rs = session.run(statement);
         }
 
     }

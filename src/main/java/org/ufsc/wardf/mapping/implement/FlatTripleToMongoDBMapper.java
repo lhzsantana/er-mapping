@@ -11,7 +11,7 @@ import org.ufsc.wardf.mapping.AbstractMapper;
 
 public class FlatTripleToMongoDBMapper extends AbstractMapper {
 
-    static MongoClient mongoClient = MongoClients.create("mongodb://historical-data:1gdupF1DiZsDj6QrQcmdbXojchgjO1kGYK6gK5KFJ7TCyjmv1BH35jKoDU7hIA499lxX6UEHYCoPMhCOhQ9kiw==@historical-data.documents.azure.com:10255/?ssl=true&replicaSet=globaldb");
+    static MongoClient mongoClient = MongoClients.create();
     static MongoDatabase db = mongoClient.getDatabase("wa-rdf");
     static MongoCollection<Document> triplesCollection = db.getCollection("triples");
 
@@ -23,10 +23,10 @@ public class FlatTripleToMongoDBMapper extends AbstractMapper {
         RDFNode object = stmt.getObject();
 
         Document triple = new Document();
-        triple.put("subject", subject);
-        triple.put("predicate", predicate);
-        triple.put("object", object);
+        triple.put("subject", subject.toString());
+        triple.put("predicate", predicate.toString());
+        triple.put("object", object.toString());
 
-        //triplesCollection.insertOne(triple);
+        triplesCollection.insertOne(triple);
     }
 }

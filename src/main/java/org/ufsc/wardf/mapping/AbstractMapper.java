@@ -12,24 +12,33 @@ public abstract class AbstractMapper {
 
     public void mapAll(Model model){
 
+        logger.info("--------------------------------------------");
+
+        int triple = 0;
+        long tripleSum = 0;
         int runs = 0;
         long sum = 0;
+        int totalRuns=1000;
 
         StmtIterator it =  model.listStatements();
+        while (it.hasNext()) {
 
-        for(int i=0;i<10;i++){
-            while (it.hasNext()) {
-                Statement stmt = it.next();
+            Statement stmt = it.next();
+            logger.info(stmt.toString());
+            tripleSum=0;
 
-                //logger.info(stmt.toString());
+            for(int i=0;i<totalRuns;i++){
 
                 long tStart = System.nanoTime();
                 store(stmt);
                 long tEnd = System.nanoTime();
                 sum += tEnd - tStart;
-
+                tripleSum +=  tEnd - tStart;
                 runs++;
             }
+
+            triple++;
+            logger.info("Elapsed time for triple "+triple+" = "+tripleSum/totalRuns);
         }
 
         logger.info("Elapsed time "+sum/runs);

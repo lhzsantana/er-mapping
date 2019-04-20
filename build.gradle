@@ -20,10 +20,10 @@ dependencies {
 
     // https://mvnrepository.com/artifact/redis.clients/jedis
     compile group: 'redis.clients', name: 'jedis', version: '3.0.1'
-
-    // https://mvnrepository.com/artifact/org.neo4j/neo4j-graphdb-api
-    compile group: 'org.neo4j', name: 'neo4j-graphdb-api', version: '3.5.4'
-
+    
+    // https://mvnrepository.com/artifact/org.neo4j.driver/neo4j-java-driver
+    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.7.3'
+    
     // https://mvnrepository.com/artifact/com.datastax.oss/java-driver-core
     compile group: 'com.datastax.oss', name: 'java-driver-core', version: '4.0.1'
     

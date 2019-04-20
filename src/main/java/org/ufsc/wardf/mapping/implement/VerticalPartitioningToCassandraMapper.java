@@ -6,8 +6,6 @@ import org.apache.jena.rdf.model.Statement;
 import org.ufsc.wardf.mapping.AbstractMapper;
 import org.ufsc.wardf.mapping.access.CassandraAccessor;
 
-import java.util.UUID;
-
 public class VerticalPartitioningToCassandraMapper extends AbstractMapper {
 
     CassandraAccessor cassandraAccessor = new CassandraAccessor();
