@@ -1,10 +1,7 @@
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.FileManager;
-import org.ufsc.wardf.mapping.implement.FlatTripleToMongoDBMapper;
-import org.ufsc.wardf.mapping.implement.GraphToNeo4JMapper;
-import org.ufsc.wardf.mapping.implement.TriplePartsPermutationToRedisMapper;
-import org.ufsc.wardf.mapping.implement.VerticalPartitioningToCassandraMapper;
+import org.ufsc.wardf.mapping.implement.*;
 
 import java.io.InputStream;
 
@@ -12,8 +9,11 @@ public class Main {
 
     private static FlatTripleToMongoDBMapper flatTripleToMongoDBMapper = new FlatTripleToMongoDBMapper();
     private static TriplePartsPermutationToRedisMapper triplePartsPermutationMapper = new TriplePartsPermutationToRedisMapper();
-    private static GraphToNeo4JMapper graphToNeo4JMapper = new GraphToNeo4JMapper();
+    //private static GraphToNeo4JMapper graphToNeo4JMapper = new GraphToNeo4JMapper();
     private static VerticalPartitioningToCassandraMapper verticalPartitioningToCassandraMapper = new VerticalPartitioningToCassandraMapper();
+    private static HierarchicalToCassandraMapper hierarchicalToCassandraMapper = new HierarchicalToCassandraMapper();
+    private static PreProcessedToCassandraMapper preProcessedToCassandraMapper = new PreProcessedToCassandraMapper();
+
 
 
     static final String inputFileName  = "vc-db-1.rdf";
@@ -32,7 +32,10 @@ public class Main {
 
         //flatTripleToMongoDBMapper.mapAll(model);
         //triplePartsPermutationMapper.mapAll(model);
-        graphToNeo4JMapper.mapAll(model);
+        //graphToNeo4JMapper.mapAll(model);
+        //verticalPartitioningToCassandraMapper.mapAll(model);
+        //hierarchicalToCassandraMapper.mapAll(model);
+        preProcessedToCassandraMapper.mapAll(model);
 
     }
 
