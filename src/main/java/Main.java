@@ -9,12 +9,10 @@ public class Main {
 
     private static FlatTripleToMongoDBMapper flatTripleToMongoDBMapper = new FlatTripleToMongoDBMapper();
     private static TriplePartsPermutationToRedisMapper triplePartsPermutationMapper = new TriplePartsPermutationToRedisMapper();
-    //private static GraphToNeo4JMapper graphToNeo4JMapper = new GraphToNeo4JMapper();
-    private static VerticalPartitioningToCassandraMapper verticalPartitioningToCassandraMapper = new VerticalPartitioningToCassandraMapper();
+    private static GraphToNeo4JMapper graphToNeo4JMapper = new GraphToNeo4JMapper();
+    private static VerticalPartitioningToCassandraMapper verticalPartitioningToCassandraMapper = new VerticalPartitioningToCassandraMapper("ksvp");
     private static HierarchicalToCassandraMapper hierarchicalToCassandraMapper = new HierarchicalToCassandraMapper();
-    private static PreProcessedToCassandraMapper preProcessedToCassandraMapper = new PreProcessedToCassandraMapper();
-
-
+    private static PreProcessedToCassandraMapper preProcessedToCassandraMapper = new PreProcessedToCassandraMapper("kspreprocessed");
 
     static final String inputFileName  = "vc-db-1.rdf";
 
@@ -30,13 +28,12 @@ public class Main {
         // read the RDF/XML file
         model.read(in, "");
 
-        //flatTripleToMongoDBMapper.mapAll(model);
-        //triplePartsPermutationMapper.mapAll(model);
-        //graphToNeo4JMapper.mapAll(model);
-        //verticalPartitioningToCassandraMapper.mapAll(model);
+        flatTripleToMongoDBMapper.mapAll(model);
+        triplePartsPermutationMapper.mapAll(model);
+        graphToNeo4JMapper.mapAll(model);
+        verticalPartitioningToCassandraMapper.mapAll(model);
         hierarchicalToCassandraMapper.mapAll(model);
-        //preProcessedToCassandraMapper.mapAll(model);
-
+        preProcessedToCassandraMapper.mapAll(model);
     }
 
 }

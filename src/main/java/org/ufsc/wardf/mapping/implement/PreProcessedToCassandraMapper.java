@@ -10,59 +10,136 @@ import org.apache.jena.rdf.model.Statement;
 import org.ufsc.wardf.mapping.AbstractMapper;
 import redis.clients.jedis.Jedis;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 public class PreProcessedToCassandraMapper extends AbstractMapper {
+
+    private String keyspace;
+    private CqlSession session;
+    private VerticalPartitioningToCassandraMapper verticalPartitioningToCassandraMapper;
+
+    public PreProcessedToCassandraMapper(String keyspace){
+        this.keyspace=keyspace;
+        this.session = CqlSession.builder().withKeyspace(keyspace).build();
+        this.verticalPartitioningToCassandraMapper = new VerticalPartitioningToCassandraMapper(keyspace);
+    }
 
     final static Log logger = LogFactory.getLog(PreProcessedToCassandraMapper.class);
 
-    private String keyspace = "triplestore";
-
-    final CqlSession session = CqlSession.builder().withKeyspace(keyspace).build();
-
     @Override
     protected void store(Statement stmt) {
+
+        verticalPartitioningToCassandraMapper.store(stmt);
 
         RDFNode subject = stmt.getSubject();
         RDFNode predicate = stmt.getPredicate();
         RDFNode object = stmt.getObject();
 
-        storeTriple(subject, predicate, object);
-        preComputeJoin();
+        preComputeJoin(subject, predicate, object);
     }
 
-    private boolean checkIfTableExists(RDFNode predicate){
+    private void preComputeJoin(RDFNode subject, RDFNode predicate, RDFNode object){
 
-        String query = "SELECT table_name " +
-                "FROM system_schema.tables WHERE keyspace_name='"+keyspace+"' AND table_name='"+predicate.asResource().getLocalName().toLowerCase()+"';";
+        List<String> tables = getAllTables();
 
-        ResultSet rs = session.execute(query);
+        for(String table:tables){
 
-        if(rs.one()!=null) return true;
+            String query = "SELECT * FROM "+table;
+            ResultSet rs = session.execute(query);
 
-        return false;
+            Iterator it = rs.iterator();
+            while (it.hasNext()){
+                Row row = (Row) it.next();
+
+                String persistedSubject = row.getString("subject");
+                String persistedObject = row.getString("object");
+
+                if(object.toString().equals(persistedSubject)){
+                    extVPOS(table, subject, predicate, object);
+                }
+                if(subject.toString().equals(persistedObject)){
+                    extVPSO(table, subject, predicate, object);
+                }
+                if(subject.toString().equals(persistedSubject)){
+                    extVPSS(table, subject, predicate, object);
+                }
+            }
+        }
     }
 
-    private void createTable(RDFNode predicate){
+    private void extVPOS(String table, RDFNode subject, RDFNode predicate, RDFNode object){
 
-        String query = "CREATE TABLE "+predicate.asResource().getLocalName().toLowerCase()+" ( "
+        String tableName = predicate.asResource().getLocalName().toLowerCase()+table+"_os";
+
+        persistExtended(tableName, subject, predicate, object);
+    }
+
+    private void extVPSO(String table, RDFNode subject, RDFNode predicate, RDFNode object){
+
+        String tableName = predicate.asResource().getLocalName().toLowerCase()+table+"_so";
+
+        persistExtended(tableName, subject, predicate, object);
+    }
+
+    private void extVPSS(String table, RDFNode subject, RDFNode predicate, RDFNode object){
+
+        String tableName = predicate.asResource().getLocalName().toLowerCase()+table+"_ss";
+
+        persistExtended(tableName, subject, predicate, object);
+    }
+
+    private void persistExtended(String tableName, RDFNode subject, RDFNode predicate, RDFNode object){
+
+        if(!checkIfTableExists(tableName)){
+            createTable(tableName);
+        }
+
+        String query = "INSERT INTO "+tableName+" (subject, object) " +
+                "  VALUES ('"+subject.toString()+"','"+object.toString()+"')";
+
+        session.execute(query);
+    }
+
+    private void createTable(String tableName){
+
+        String query = "CREATE TABLE "+tableName+" ( "
                 + "subject text, "
                 + "object text, PRIMARY KEY (subject, object))";
 
         session.execute(query);
     }
 
-    private void storeTriple(RDFNode subject, RDFNode predicate, RDFNode object) {
+    private boolean checkIfTableExists(String tableName){
 
-        if(!checkIfTableExists(predicate)){
-            createTable(predicate);
-        }
+        String query = "SELECT table_name " +
+                "FROM system_schema.tables WHERE keyspace_name='"+keyspace+"' AND table_name='"+tableName+"';";
 
-        String query = "INSERT INTO "+predicate.asResource().getLocalName().toLowerCase()+" (subject, object) " +
-                "  VALUES ('"+subject.toString()+"','"+object.toString()+"')";
+        ResultSet rs = session.execute(query);
+        if(rs.one()!=null) return true;
 
-        session.execute(query);
+        return false;
     }
 
-    private void preComputeJoin(){
 
+    private List<String> getAllTables(){
+
+        String query = "SELECT table_name FROM system_schema.tables WHERE keyspace_name='"+keyspace+"';";
+
+        List<String> tables = new ArrayList<>();
+
+        ResultSet rs = session.execute(query);
+        Iterator it = rs.iterator();
+        while (it.hasNext()){
+
+            String tableName = ((Row) it.next()).getString(0);
+
+            if(tableName.contains("_ss") || tableName.contains("_os") || tableName.contains("_so")) continue;
+
+            tables.add(tableName);
+        }
+
+        return tables;
     }
 }

@@ -14,11 +14,15 @@ import java.util.UUID;
 
 public class VerticalPartitioningToCassandraMapper extends AbstractMapper {
 
+    private String keyspace;
+    private CqlSession session;
+
+    public VerticalPartitioningToCassandraMapper(String keyspace){
+        this.keyspace=keyspace;
+        this.session = CqlSession.builder().withKeyspace(keyspace).build();
+    }
+
     final static Log logger = LogFactory.getLog(VerticalPartitioningToCassandraMapper.class);
-
-    final private String keyspace = "triplestore";
-
-    final CqlSession session = CqlSession.builder().withKeyspace(keyspace).build();
 
     @Override
     protected void store(Statement stmt) {
