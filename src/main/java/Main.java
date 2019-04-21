@@ -34,8 +34,8 @@ public class Main {
         //triplePartsPermutationMapper.mapAll(model);
         //graphToNeo4JMapper.mapAll(model);
         //verticalPartitioningToCassandraMapper.mapAll(model);
-        //hierarchicalToCassandraMapper.mapAll(model);
-        preProcessedToCassandraMapper.mapAll(model);
+        hierarchicalToCassandraMapper.mapAll(model);
+        //preProcessedToCassandraMapper.mapAll(model);
 
     }
 

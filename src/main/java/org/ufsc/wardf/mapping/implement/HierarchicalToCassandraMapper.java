@@ -20,6 +20,11 @@ public class HierarchicalToCassandraMapper extends AbstractMapper {
 
     final CqlSession session = CqlSession.builder().withKeyspace(keyspace).build();
 
+    public HierarchicalToCassandraMapper(){
+        createTableSPO();
+        createTableOPS();
+    }
+
     @Override
     protected void store(Statement stmt) {
 
@@ -31,45 +36,52 @@ public class HierarchicalToCassandraMapper extends AbstractMapper {
         storeTripleOPS(subject, predicate, object);
     }
 
-    private boolean checkIfTableExists(RDFNode predicate){
+    private void createTableSPO(){
+        try {
+            session.execute("DROP TABLE spo");
 
-        String query = "SELECT table_name " +
-                "FROM system_schema.tables WHERE keyspace_name='"+keyspace+"' AND table_name='"+predicate.asResource().getLocalName().toLowerCase()+"';";
+            String query = "CREATE TABLE spo ( "
+                    + "subject text, "
+                    + "object text, PRIMARY KEY (subject))";
+            session.execute(query);
+        }catch (Exception e){
 
-        ResultSet rs = session.execute(query);
-        if(rs.one()!=null) return true;
-
-        return false;
+        }
     }
 
-    private void createTable(RDFNode predicate){
+    private void createTableOPS(){
+        try {
+            session.execute("DROP TABLE ops");
 
-        String query = "CREATE TABLE "+predicate.asResource().getLocalName().toLowerCase()+" ( "
-                + "subject text, "
-                + "object text, PRIMARY KEY (subject, object))";
-        session.execute(query);
+            String query = "CREATE TABLE ops ( "
+                    + "subject text, "
+                    + "object text, PRIMARY KEY (object))";
+            session.execute(query);
+        }catch (Exception e){}
     }
 
     private void storeTripleSPO(RDFNode subject, RDFNode predicate, RDFNode object) {
 
-        if(!checkIfTableExists(predicate)){
-            createTable(predicate);
-        }
+        try {
+            String createColumn = "ALTER TABLE spo ADD (" + predicate.asResource().getLocalName().toLowerCase() + " text)";
+            session.execute(createColumn);
+        }catch (Exception e){}
 
-        String query = "INSERT INTO "+predicate.asResource().getLocalName().toLowerCase()+" (subject, object) " +
-                "  VALUES ('"+subject.toString()+"','"+object.toString()+"')";
+        String query = "INSERT INTO spo (subject, " + predicate.asResource().getLocalName().toLowerCase() + ") " +
+                " VALUES ('"+subject.toString()+"','"+object.toString()+"')";
 
         session.execute(query);
     }
 
     private void storeTripleOPS(RDFNode subject, RDFNode predicate, RDFNode object) {
 
-        if(!checkIfTableExists(predicate)){
-            createTable(predicate);
-        }
+        try {
+            String createColumn = "ALTER TABLE ops ADD (" + predicate.asResource().getLocalName().toLowerCase() + " text)";
+            session.execute(createColumn);
+        }catch (Exception e){}
 
-        String query = "INSERT INTO "+predicate.asResource().getLocalName().toLowerCase()+" (subject, object) " +
-                "  VALUES ('"+subject.toString()+"','"+object.toString()+"')";
+        String query = "INSERT INTO ops (object, " + predicate.asResource().getLocalName().toLowerCase() + ") " +
+                 " VALUES ('"+object.toString()+"','"+subject.toString()+"')";
 
         session.execute(query);
     }
